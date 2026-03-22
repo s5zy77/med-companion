@@ -1,0 +1,25 @@
+[31m✗[39m Build failed in 527ms
+[31merror during build:
+[31m[vite:esbuild] Transform failed with 1 error:
+C:/Users/Subhasree/Desktop/mednote/src/components/Onboarding.jsx:18:47: ERROR: Expected "}" but found "ll"[31m
+file: [36mC:/Users/Subhasree/Desktop/mednote/src/components/Onboarding.jsx:18:47[31m
+[33m
+[33mExpected "}" but found "ll"[33m
+16 |      emoji: '⏰',
+17 |      title: 'Never Miss a Dose',
+18 |      desc: 'Set reminders for each medicine. We'll send you a notification when it's time to take your medicine.',
+   |                                                 ^
+19 |    },
+20 |  ];
+[31m
+    at failureErrorWithLog (c:\Users\Subhasree\Desktop\mednote\node_modules\esbuild\lib\main.js:1467:15)
+    at c:\Users\Subhasree\Desktop\mednote\node_modules\esbuild\lib\main.js:736:50
+    at responseCallbacks.<computed> (c:\Users\Subhasree\Desktop\mednote\node_modules\esbuild\lib\main.js:603:9)
+    at handleIncomingPacket (c:\Users\Subhasree\Desktop\mednote\node_modules\esbuild\lib\main.js:658:12)
+    at Socket.readFromStdout (c:\Users\Subhasree\Desktop\mednote\node_modules\esbuild\lib\main.js:581:7)
+    at Socket.emit (node:events:508:28)
+    at addChunk (node:internal/streams/readable:563:12)
+    at readableAddChunkPushByteMode (node:internal/streams/readable:514:3)
+    at Readable.push (node:internal/streams/readable:394:5)
+    at Pipe.onStreamRead (node:internal/stream_base_commons:189:23)[39m
+Command failed: npx vite build --logLevel error 2>&1

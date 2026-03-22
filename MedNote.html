@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MedNote – Your Medicine Companion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root {
+    --bg: #faf9f7;
+    --surface: #ffffff;
+    --surface2: #f3f2ef;
+    --border: #e8e5df;
+    --text: #1a1917;
+    --text2: #6b6860;
+    --text3: #9b9890;
+    --accent: #2f6b4f;
+    --accent-light: #e8f3ee;
+    --accent2: #b85c2a;
+    --accent2-light: #fdf0e8;
+    --warn: #c9732a;
+    --warn-light: #fef3e8;
+    --info: #2a6b9b;
+    --info-light: #e8f2fc;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+    --radius: 12px;
+    --sidebar-w: 260px;
+  }
+  .dark {
+    --bg: #141412;
+    --surface: #1e1d1b;
+    --surface2: #2a2927;
+    --border: #383632;
+    --text: #f0ede8;
+    --text2: #9b9890;
+    --text3: #6b6860;
+    --accent: #4a9b72;
+    --accent-light: #1a2e23;
+    --accent2: #d4784a;
+    --accent2-light: #2a1e14;
+    --warn: #d4874a;
+    --warn-light: #2a1e10;
+    --info: #4a8fc9;
+    --info-light: #101e2a;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; transition: background 0.3s, color 0.3s; }
+  h1,h2,h3 { font-family: 'Lora', serif; }
+  .sidebar { width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border); height: 100vh; position: fixed; left: 0; top: 0; overflow-y: auto; transition: transform 0.3s; z-index: 40; }
+  .main { margin-left: var(--sidebar-w); min-height: 100vh; padding: 0; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; border: none; transition: all 0.2s; }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn-ghost { background: transparent; color: var(--text2); }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text); }
+  .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text2); }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+  input, textarea { font-family: 'DM Sans', sans-serif; background: var(--surface2); border: 1.5px solid var(--border); color: var(--text); border-radius: 8px; padding: 10px 14px; font-size: 15px; outline: none; transition: border 0.2s; width: 100%; }
+  input:focus, textarea:focus { border-color: var(--accent); }
+  select { font-family: 'DM Sans', sans-serif; background: var(--surface2); border: 1.5px solid var(--border); color: var(--text); border-radius: 8px; padding: 10px 14px; font-size: 15px; outline: none; }
+  .sidebar-item { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 14px; color: var(--text2); transition: all 0.15s; }
+  .sidebar-item:hover { background: var(--surface2); color: var(--text); }
+  .sidebar-item.active { background: var(--accent-light); color: var(--accent); font-weight: 500; }
+  .upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 48px 24px; text-align: center; cursor: pointer; transition: all 0.2s; }
+  .upload-zone:hover { border-color: var(--accent); background: var(--accent-light); }
+  .chat-bubble-user { background: var(--accent); color: white; border-radius: 18px 18px 4px 18px; padding: 12px 16px; max-width: 72%; align-self: flex-end; font-size: 15px; }
+  .chat-bubble-ai { background: var(--surface2); color: var(--text); border-radius: 18px 18px 18px 4px; padding: 12px 16px; max-width: 80%; align-self: flex-start; font-size: 15px; }
+  .reminder-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; display: flex; align-items: center; gap: 16px; }
+  .pulse { animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+  .fade-in { animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  .slide-in { animation: slideIn 0.3s ease; }
+  @keyframes slideIn { from{opacity:0;transform:translateX(-12px)} to{opacity:1;transform:translateX(0)} }
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; display:flex; align-items:center; justify-content:center; padding: 24px; backdrop-filter: blur(4px); }
+  .modal { background: var(--surface); border-radius: 16px; padding: 32px; max-width: 560px; width: 100%; box-shadow: var(--shadow-md); }
+  .progress-bar { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.4s ease; }
+  ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  @media (max-width: 768px) { .sidebar { transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } .main { margin-left: 0; } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ─── Mock Data ─────────────────────────────────────────────────────────────
+const MEDICINE_DB = {
+  "metformin": {
+    name: "Metformin 500mg", category: "Diabetes", color: "#2f6b4f",
+    use: "Controls blood sugar levels in Type 2 Diabetes. Helps the body use insulin properly.",
+    dosage: "Usually 1 tablet, twice daily — morning and evening with food.",
+    warnings: ["Always take with food to avoid stomach upset.", "Do not skip meals while taking this.", "Inform doctor if you feel dizzy or very tired."],
+    sideEffects: "May cause mild nausea or stomach upset initially.",
+    tags: ["Diabetes", "Sugar Control"], icon: "💊"
+  },
+  "amlodipine": {
+    name: "Amlodipine 5mg", category: "Blood Pressure", color: "#2a6b9b",
+    use: "Lowers high blood pressure and reduces chest pain (angina). Relaxes blood vessels.",
+    dosage: "1 tablet per day, at the same time each day. Can be taken with or without food.",
+    warnings: ["Do not stop suddenly without doctor's advice.", "Avoid grapefruit juice.", "May cause ankle swelling — inform doctor."],
+    sideEffects: "Mild headache or flushing may occur in first few days.",
+    tags: ["BP", "Heart"], icon: "💉"
+  },
+  "atorvastatin": {
+    name: "Atorvastatin 10mg", category: "Cholesterol", color: "#b85c2a",
+    use: "Reduces 'bad' cholesterol (LDL) in blood. Protects heart and blood vessels.",
+    dosage: "1 tablet daily, preferably in the evening or at night.",
+    warnings: ["Avoid alcohol.", "Report any unusual muscle pain immediately.", "Regular blood tests needed."],
+    sideEffects: "Rarely causes muscle pain or weakness. Mild digestive issues possible.",
+    tags: ["Cholesterol", "Heart"], icon: "🫀"
+  },
+  "paracetamol": {
+    name: "Paracetamol 500mg", category: "Pain Relief", color: "#7a4fb5",
+    use: "Relieves mild to moderate pain like headache, toothache, and fever.",
+    dosage: "1-2 tablets every 4-6 hours as needed. Maximum 8 tablets per day.",
+    warnings: ["Do not exceed recommended dose.", "Avoid if liver problems.", "Do not combine with other paracetamol products."],
+    sideEffects: "Very safe when used as directed. Rare allergic reactions possible.",
+    tags: ["Pain", "Fever"], icon: "🌡️"
+  },
+  "omeprazole": {
+    name: "Omeprazole 20mg", category: "Acidity", color: "#c9732a",
+    use: "Reduces stomach acid. Treats heartburn, acid reflux, and stomach ulcers.",
+    dosage: "1 capsule daily, 30 minutes BEFORE breakfast.",
+    warnings: ["Take on empty stomach for best effect.", "Long-term use may affect bone density.", "Complete the full course prescribed."],
+    sideEffects: "May cause headache or mild stomach upset.",
+    tags: ["Acidity", "Stomach"], icon: "🫃"
+  }
+};
+
+const TAG_COLORS = {
+  "Diabetes": { bg: "#e8f3ee", text: "#2f6b4f" },
+  "Sugar Control": { bg: "#e8f3ee", text: "#2f6b4f" },
+  "BP": { bg: "#e8f2fc", text: "#2a6b9b" },
+  "Heart": { bg: "#fce8e8", text: "#9b2a2a" },
+  "Cholesterol": { bg: "#fdf0e8", text: "#b85c2a" },
+  "Pain": { bg: "#f0e8fc", text: "#7a4fb5" },
+  "Fever": { bg: "#f0e8fc", text: "#7a4fb5" },
+  "Acidity": { bg: "#fef3e8", text: "#c9732a" },
+  "Stomach": { bg: "#fef3e8", text: "#c9732a" },
+  "Morning": { bg: "#fff8e1", text: "#b8860b" },
+  "Evening": { bg: "#e8f0fe", text: "#3949ab" },
+  "Night": { bg: "#ede7f6", text: "#512da8" },
+};
+
+const INITIAL_MEDICINES = [
+  { id: 1, ...MEDICINE_DB["metformin"], notes: "Prescribed by Dr. Sharma on Jan 2025. Take with breakfast and dinner.", reminder: { enabled: true, times: ["08:00", "20:00"] }, addedDate: "2025-01-15" },
+  { id: 2, ...MEDICINE_DB["amlodipine"], notes: "Started for hypertension. Check BP weekly.", reminder: { enabled: true, times: ["09:00"] }, addedDate: "2025-02-10" },
+  { id: 3, ...MEDICINE_DB["atorvastatin"], notes: "Cholesterol was high. Follow low-fat diet.", reminder: { enabled: false, times: ["22:00"] }, addedDate: "2025-03-01" },
+];
+
+const AI_RESPONSES = {
+  en: {
+    "what is metformin": "Metformin is a medicine for diabetes. It helps control your blood sugar levels and makes your body respond better to insulin. Think of it like a helper that keeps your sugar levels steady.",
+    "can i take metformin with food": "Yes! You should always take Metformin WITH food — during or after a meal. This helps avoid stomach upset. Never take it on an empty stomach.",
+    "what is amlodipine": "Amlodipine is a blood pressure medicine. It relaxes your blood vessels so your heart doesn't have to work as hard. This helps keep your blood pressure normal.",
+    "side effects": "Common side effects are usually mild — like slight nausea, headache, or dizziness. These often go away after a few days. Always tell your doctor if something bothers you.",
+    "what medicines do i have": "You currently have 3 medicines saved:\n1. 💊 Metformin – for Diabetes\n2. 💉 Amlodipine – for Blood Pressure\n3. 🫀 Atorvastatin – for Cholesterol",
+    "default": "I'm your medicine assistant! You can ask me things like:\n• 'What is Metformin for?'\n• 'Can I take Amlodipine with food?'\n• 'What are the side effects?'\n\nI'll explain everything in simple words! 😊"
+  },
+  bn: {
+    "what is metformin": "মেটফর্মিন হলো ডায়াবেটিসের ওষুধ। এটি আপনার রক্তে শর্করার মাত্রা নিয়ন্ত্রণ করতে সাহায্য করে। সহজ কথায়, এটি আপনার সুগারকে ঠিক রাখে।",
+    "can i take metformin with food": "হ্যাঁ! মেটফর্মিন সবসময় খাবারের সাথে খেতে হয়। খালি পেটে খেলে পেটে সমস্যা হতে পারে।",
+    "what is amlodipine": "অ্যামলোডিপিন রক্তচাপের ওষুধ। এটি রক্তনালী শিথিল করে, যার ফলে হৃদয়কে কম পরিশ্রম করতে হয়।",
+    "default": "আমি আপনার ওষুধ সহায়ক! আপনি জিজ্ঞাসা করতে পারেন:\n• 'মেটফর্মিন কীসের জন্য?'\n• 'খাবারের সাথে কি নেওয়া যাবে?'\n\nআমি সহজ ভাষায় বুঝিয়ে দেব! 😊"
+  }
+};
+
+function getAIResponse(query, lang) {
+  const q = query.toLowerCase();
+  const responses = AI_RESPONSES[lang] || AI_RESPONSES.en;
+  for (const key of Object.keys(responses)) {
+    if (key !== "default" && q.includes(key)) return responses[key];
+  }
+  return responses["default"];
+}
+
+// ─── Icons ──────────────────────────────────────────────────────────────────
+const Icon = ({ name, size = 18, className = "" }) => {
+  const icons = {
+    home: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>,
+    scan: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h3v3H7zM14 7h3v3h-3zM7 14h3v3H7zM14 14h3v3h-3z"/></svg>,
+    chat: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
+    bell: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
+    upload: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
+    users: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+    pill: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg>,
+    plus: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+    sun: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>,
+    moon: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>,
+    menu: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>,
+    x: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+    edit: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
+    trash: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><polyline points="3,6 5,6 21,6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>,
+    check: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={className}><polyline points="20,6 9,17 4,12"/></svg>,
+    send: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>,
+    clock: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>,
+    info: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>,
+    warn: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+    camera: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>,
+    star: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/></svg>,
+    shield: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>,
+    search: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+    back: <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12,19 5,12 12,5"/></svg>,
+  };
+  return icons[name] || null;
+};
+
+// ─── Tag Component ──────────────────────────────────────────────────────────
+const Tag = ({ label, onRemove }) => {
+  const colors = TAG_COLORS[label] || { bg: "var(--surface2)", text: "var(--text2)" };
+  return (
+    <span className="tag" style={{ background: colors.bg, color: colors.text }}>
+      {label}
+      {onRemove && <button onClick={onRemove} style={{ background: "none", border: "none", cursor: "pointer", color: "inherit", padding: 0, lineHeight: 1 }}>×</button>}
+    </span>
+  );
+};
+
+// ─── Sidebar ────────────────────────────────────────────────────────────────
+const Sidebar = ({ page, setPage, dark, setDark, medicines, open, setOpen }) => (
+  <div className={`sidebar flex flex-col ${open ? "open" : ""}`}>
+    <div style={{ padding: "20px 16px 12px", borderBottom: "1px solid var(--border)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+        <div style={{ width: 32, height: 32, background: "var(--accent)", borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Icon name="pill" size={16} style={{ color: "white" }} />
+          <span style={{ color: "white", fontWeight: 700, fontSize: 14, marginLeft: 1 }}>M</span>
+        </div>
+        <div>
+          <div style={{ fontFamily: "Lora", fontWeight: 700, fontSize: 18, color: "var(--text)" }}>MedNote</div>
+          <div style={{ fontSize: 11, color: "var(--text3)" }}>Medicine Companion</div>
+        </div>
+      </div>
+    </div>
+
+    <div style={{ padding: "12px 8px", flex: 1 }}>
+      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text3)", letterSpacing: "0.08em", padding: "4px 8px 8px", textTransform: "uppercase" }}>Navigation</div>
+      {[
+        { id: "home", icon: "home", label: "Dashboard" },
+        { id: "scanner", icon: "scan", label: "Medicine Scanner" },
+        { id: "medicines", icon: "pill", label: "My Medicines", badge: medicines.length },
+        { id: "assistant", icon: "chat", label: "AI Assistant" },
+        { id: "reminders", icon: "bell", label: "Reminders" },
+        { id: "prescription", icon: "upload", label: "Prescription Upload" },
+        { id: "family", icon: "users", label: "Family Access" },
+      ].map(item => (
+        <div key={item.id} className={`sidebar-item ${page === item.id ? "active" : ""}`} onClick={() => { setPage(item.id); setOpen(false); }}>
+          <Icon name={item.icon} size={16} />
+          <span style={{ flex: 1, fontSize: 14 }}>{item.label}</span>
+          {item.badge !== undefined && <span style={{ background: "var(--accent)", color: "white", borderRadius: 10, padding: "1px 7px", fontSize: 11, fontWeight: 600 }}>{item.badge}</span>}
+        </div>
+      ))}
+    </div>
+
+    <div style={{ padding: "12px 8px", borderTop: "1px solid var(--border)" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 8px" }}>
+        <span style={{ fontSize: 13, color: "var(--text2)" }}>Dark mode</span>
+        <button onClick={() => setDark(!dark)} className="btn btn-ghost" style={{ padding: "6px 8px" }}>
+          <Icon name={dark ? "sun" : "moon"} size={16} />
+        </button>
+      </div>
+      <div style={{ padding: "8px", background: "var(--surface2)", borderRadius: 8, marginTop: 8 }}>
+        <div style={{ fontSize: 12, color: "var(--text3)", marginBottom: 4 }}>Logged in as</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ width: 28, height: 28, background: "var(--accent)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: 13, fontWeight: 700 }}>R</div>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 500, color: "var(--text)" }}>Ramesh Das</div>
+            <div style={{ fontSize: 11, color: "var(--text3)" }}>Patient</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+// ─── Home / Dashboard ────────────────────────────────────────────────────────
+const Dashboard = ({ medicines, setPage, setSelectedMed }) => {
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
+  const dateStr = now.toLocaleDateString("en-IN", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+
+  const nextReminder = "Metformin 500mg — 8:00 PM";
+  const stats = [
+    { label: "Medicines", value: medicines.length, icon: "pill", color: "var(--accent)" },
+    { label: "Reminders Set", value: medicines.filter(m => m.reminder?.enabled).length, icon: "bell", color: "#2a6b9b" },
+    { label: "Tags", value: [...new Set(medicines.flatMap(m => m.tags))].length, icon: "star", color: "#b85c2a" },
+  ];
+
+  return (
+    <div className="fade-in" style={{ padding: "32px 40px", maxWidth: 860, margin: "0 auto" }}>
+      <div style={{ marginBottom: 32 }}>
+        <div style={{ fontSize: 14, color: "var(--text3)", marginBottom: 4 }}>{dateStr}</div>
+        <h1 style={{ fontSize: 32, fontWeight: 600, color: "var(--text)", marginBottom: 8 }}>Good {now.getHours() < 12 ? "Morning" : now.getHours() < 17 ? "Afternoon" : "Evening"}, Ramesh 👋</h1>
+        <p style={{ fontSize: 17, color: "var(--text2)" }}>Here's your health overview for today.</p>
+      </div>
+
+      {/* Reminder Banner */}
+      <div style={{ background: "var(--accent-light)", border: "1.5px solid var(--accent)", borderRadius: 12, padding: "16px 20px", display: "flex", alignItems: "center", gap: 14, marginBottom: 28 }}>
+        <div style={{ width: 40, height: 40, background: "var(--accent)", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Icon name="bell" size={18} style={{ color: "white" }} />
+        </div>
+        <div>
+          <div style={{ fontSize: 13, color: "var(--accent)", fontWeight: 600, marginBottom: 2 }}>⏰ Next Reminder</div>
+          <div style={{ fontSize: 16, color: "var(--text)", fontWeight: 500 }}>{nextReminder}</div>
+        </div>
+        <button className="btn btn-primary" style={{ marginLeft: "auto", padding: "8px 14px", fontSize: 13 }} onClick={() => setPage("reminders")}>
+          View All
+        </button>
+      </div>
+
+      {/* Stats */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 32 }}>
+        {stats.map(s => (
+          <div key={s.label} className="card" style={{ padding: "20px", textAlign: "center" }}>
+            <div style={{ width: 44, height: 44, background: s.color + "22", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px", color: s.color }}>
+              <Icon name={s.icon} size={20} />
+            </div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: "var(--text)", fontFamily: "Lora" }}>{s.value}</div>
+            <div style={{ fontSize: 13, color: "var(--text3)", marginTop: 2 }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Quick Actions */}
+      <div style={{ marginBottom: 28 }}>
+        <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 16, color: "var(--text)" }}>Quick Actions</h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 12 }}>
+          {[
+            { id: "scanner", icon: "scan", label: "Scan Medicine", desc: "Upload or capture a medicine image", color: "#2f6b4f" },
+            { id: "assistant", icon: "chat", label: "Ask AI Assistant", desc: "Get answers in simple language", color: "#2a6b9b" },
+            { id: "prescription", icon: "upload", label: "Upload Prescription", desc: "Extract medicines automatically", color: "#b85c2a" },
+            { id: "reminders", icon: "bell", label: "Set Reminders", desc: "Never miss a dose", color: "#7a4fb5" },
+          ].map(a => (
+            <div key={a.id} className="card" style={{ padding: "18px 20px", cursor: "pointer", transition: "transform 0.2s, box-shadow 0.2s" }}
+              onClick={() => setPage(a.id)}
+              onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "var(--shadow-md)"; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 40, height: 40, background: a.color + "22", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", color: a.color }}>
+                  <Icon name={a.icon} size={20} />
+                </div>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 15, color: "var(--text)" }}>{a.label}</div>
+                  <div style={{ fontSize: 13, color: "var(--text3)", marginTop: 1 }}>{a.desc}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Recent Medicines */}
+      <div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 600, color: "var(--text)" }}>Recent Medicines</h2>
+          <button className="btn btn-ghost" style={{ fontSize: 13 }} onClick={() => setPage("medicines")}>View All →</button>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {medicines.slice(0, 3).map(m => (
+            <div key={m.id} className="card" style={{ padding: "16px 20px", display: "flex", alignItems: "center", gap: 16, cursor: "pointer" }}
+              onClick={() => { setSelectedMed(m); setPage("medicines"); }}>
+              <div style={{ width: 44, height: 44, background: (m.color || "#2f6b4f") + "22", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22 }}>
+                {m.icon}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: 15, color: "var(--text)", marginBottom: 3 }}>{m.name}</div>
+                <div style={{ fontSize: 13, color: "var(--text3)" }}>{m.use.slice(0, 60)}...</div>
+              </div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {m.tags.slice(0, 2).map(t => <Tag key={t} label={t} />)}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── Scanner ─────────────────────────────────────────────────────────────────
+const Scanner = ({ medicines, setMedicines, setPage, setSelectedMed }) => {
+  const [stage, setStage] = useState("idle"); // idle, scanning, result, manual
+  const [progress, setProgress] = useState(0);
+  const [result, setResult] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [manualName, setManualName] = useState("");
+  const fileRef = useRef();
+
+  const simulateScan = (name) => {
+    setStage("scanning");
+    setProgress(0);
+    const steps = [15, 35, 60, 80, 95, 100];
+    steps.forEach((v, i) => setTimeout(() => {
+      setProgress(v);
+      if (v === 100) {
+        const found = Object.values(MEDICINE_DB).find(m =>
+          m.name.toLowerCase().includes(name.toLowerCase()) ||
+          name.toLowerCase().includes(m.name.toLowerCase().split(" ")[0])
+        ) || Object.values(MEDICINE_DB)[Math.floor(Math.random() * 3)];
+        setResult(found);
+        setStage("result");
+      }
+    }, i * 500));
+  };
+
+  const handleFile = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    simulateScan(file.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " "));
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    simulateScan(file.name);
+  };
+
+  const addMedicine = () => {
+    const newMed = {
+      id: Date.now(),
+      ...result,
+      notes: "",
+      reminder: { enabled: false, times: ["08:00"] },
+      addedDate: new Date().toISOString().split("T")[0]
+    };
+    setMedicines(prev => [...prev, newMed]);
+    setSelectedMed(newMed);
+    setPage("medicines");
+  };
+
+  return (
+    <div className="fade-in" style={{ padding: "32px 40px", maxWidth: 720, margin: "0 auto" }}>
+      <h1 style={{ fontSize: 28, fontWeight: 600, marginBottom: 8 }}>Medicine Scanner</h1>
+      <p style={{ color: "var(--text2)", marginBottom: 32, fontSize: 16 }}>Upload a photo of your medicine and we'll explain it in simple words.</p>
+
+      {stage === "idle" && (
+        <>
+          <div className="upload-zone" onDrop={handleDrop} onDragOver={e => e.preventDefault()} onClick={() => fileRef.current.click()}>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>📷</div>
+            <div style={{ fontSize: 20, fontWeight: 600, color: "var(--text)", marginBottom: 8 }}>Upload Medicine Photo</div>
+            <div style={{ fontSize: 15, color: "var(--text2)", marginBottom: 20 }}>Drag & drop or click to select. Supports JPG, PNG</div>
+            <button className="btn btn-primary" style={{ fontSize: 16, padding: "12px 24px" }}>
+              <Icon name="camera" size={18} /> Choose Photo
+            </button>
+            <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFile} />
+          </div>
+
+          <div style={{ textAlign: "center", margin: "20px 0", color: "var(--text3)", fontSize: 14 }}>— or type medicine name directly —</div>
+
+          <div style={{ display: "flex", gap: 12 }}>
+            <input placeholder="e.g. Metformin, Amlodipine, Paracetamol..." value={manualName} onChange={e => setManualName(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && manualName && simulateScan(manualName)} style={{ flex: 1 }} />
+            <button className="btn btn-primary" style={{ padding: "10px 20px" }} onClick={() => manualName && simulateScan(manualName)}>
+              <Icon name="search" size={16} /> Search
+            </button>
+          </div>
+
+          <div style={{ marginTop: 24 }}>
+            <div style={{ fontSize: 13, color: "var(--text3)", marginBottom: 10 }}>Try these examples:</div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {["Metformin", "Amlodipine", "Atorvastatin", "Paracetamol", "Omeprazole"].map(n => (
+                <button key={n} className="btn btn-outline" style={{ fontSize: 13, padding: "6px 14px" }} onClick={() => simulateScan(n)}>{n}</button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {stage === "scanning" && (
+        <div className="card fade-in" style={{ padding: "48px 32px", textAlign: "center" }}>
+          {previewUrl && <img src={previewUrl} alt="Medicine" style={{ width: 200, height: 140, objectFit: "cover", borderRadius: 12, marginBottom: 24, border: "1px solid var(--border)" }} />}
+          <div style={{ fontSize: 22, marginBottom: 8 }}>🔍</div>
+          <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 6 }}>Analyzing Medicine...</div>
+          <div style={{ color: "var(--text2)", fontSize: 14, marginBottom: 24 }}>
+            {progress < 40 ? "Extracting text from image..." : progress < 70 ? "Identifying medicine..." : progress < 95 ? "Fetching information..." : "Almost done..."}
+          </div>
+          <div className="progress-bar" style={{ maxWidth: 320, margin: "0 auto" }}>
+            <div className="progress-fill" style={{ width: `${progress}%` }} />
+          </div>
+          <div style={{ fontSize: 13, color: "var(--text3)", marginTop: 8 }}>{progress}%</div>
+        </div>
+      )}
+
+      {stage === "result" && result && (
+        <div className="fade-in">
+          <div className="card" style={{ padding: "28px", marginBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20 }}>
+              <div style={{ width: 56, height: 56, background: (result.color || "#2f6b4f") + "22", borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28 }}>
+                {result.icon}
+              </div>
+              <div>
+                <div style={{ fontFamily: "Lora", fontSize: 22, fontWeight: 600, color: "var(--text)" }}>{result.name}</div>
+                <div style={{ fontSize: 14, color: "var(--text2)", marginTop: 3 }}>{result.category}</div>
+              </div>
+              <div style={{ marginLeft: "auto", background: "#d4edda", color: "#1a6b3a", padding: "4px 12px", borderRadius: 20, fontSize: 13, fontWeight: 600 }}>✓ Identified</div>
+            </div>
+
+            {/* Use */}
+            <div style={{ background: "var(--accent-light)", borderRadius: 10, padding: "16px", marginBottom: 14 }}>
+              <div style={{ fontWeight: 600, color: "var(--accent)", fontSize: 14, marginBottom: 6 }}>💊 What is it for?</div>
+              <div style={{ fontSize: 16, color: "var(--text)", lineHeight: 1.6 }}>{result.use}</div>
+            </div>
+
+            {/* Dosage */}
+            <div style={{ background: "var(--info-light)", borderRadius: 10, padding: "16px", marginBottom: 14 }}>
+              <div style={{ fontWeight: 600, color: "var(--info)", fontSize: 14, marginBottom: 6 }}>🕐 How to take it?</div>
+              <div style={{ fontSize: 16, color: "var(--text)", lineHeight: 1.6 }}>{result.dosage}</div>
+            </div>
+
+            {/* Warnings */}
+            <div style={{ background: "var(--warn-light)", borderRadius: 10, padding: "16px", marginBottom: 14 }}>
+              <div style={{ fontWeight: 600, color: "var(--warn)", fontSize: 14, marginBottom: 8 }}>⚠️ Important Warnings</div>
+              {result.warnings.map((w, i) => (
+                <div key={i} style={{ display: "flex", gap: 8, marginBottom: 6, fontSize: 15, color: "var(--text)", lineHeight: 1.5 }}>
+                  <span style={{ color: "var(--warn)", flexShrink: 0 }}>•</span> {w}
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 20 }}>
+              {result.tags.map(t => <Tag key={t} label={t} />)}
+            </div>
+
+            <div style={{ display: "flex", gap: 12 }}>
+              <button className="btn btn-primary" style={{ flex: 1, justifyContent: "center", fontSize: 16, padding: "14px" }} onClick={addMedicine}>
+                <Icon name="plus" size={18} /> Add to My Medicines
+              </button>
+              <button className="btn btn-outline" style={{ padding: "14px 20px" }} onClick={() => { setStage("idle"); setPreviewUrl(null); setResult(null); }}>
+                Scan Another
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── Medicine Page ───────────────────────────────────────────────────────────
+const MedicinePage = ({ med, onUpdate, onDelete, onBack }) => {
+  const [editing, setEditing] = useState(false);
+  const [notes, setNotes] = useState(med.notes || "");
+  const [tagInput, setTagInput] = useState("");
+
+  const save = () => { onUpdate({ ...med, notes }); setEditing(false); };
+
+  const addTag = (e) => {
+    if (e.key === "Enter" && tagInput.trim()) {
+      onUpdate({ ...med, tags: [...(med.tags || []), tagInput.trim()] });
+      setTagInput("");
+    }
+  };
+  const removeTag = (t) => onUpdate({ ...med, tags: med.tags.filter(x => x !== t) });
+
+  return (
+    <div className="fade-in" style={{ padding: "32px 40px", maxWidth: 760, margin: "0 auto" }}>
+      <button className="btn btn-ghost" style={{ marginBottom: 20, fontSize: 14, padding: "6px 10px" }} onClick={onBack}>
+        <Icon name="back" size={16} /> Back to Medicines
+      </button>
+
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 28 }}>
+        <div style={{ width: 64, height: 64, background: (med.color || "#2f6b4f") + "22", borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 30, flexShrink: 0 }}>
+          {med.icon}
+        </div>
+        <div style={{ flex: 1 }}>
+          <h1 style={{ fontSize: 28, fontWeight: 600, marginBottom: 4 }}>{med.name}</h1>
+          <div style={{ fontSize: 14, color: "var(--text3)" }}>Added: {med.addedDate} · {med.category}</div>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className="btn btn-outline" onClick={() => setEditing(!editing)} style={{ padding: "8px 14px", fontSize: 13 }}>
+            <Icon name="edit" size={14} /> Edit
+          </button>
+          <button className="btn btn-ghost" onClick={() => { if (confirm("Delete this medicine?")) onDelete(med.id); }} style={{ padding: "8px 12px", color: "#c9732a" }}>
+            <Icon name="trash" size={14} />
+          </button>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", gap: 16, flexDirection: "column" }}>
+        <div className="card" style={{ padding: "20px" }}>
+          <div style={{ fontWeight: 600, color: "var(--accent)", marginBottom: 10, fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}>
+            <Icon name="info" size={15} /> What is it for?
+          </div>
+          <div style={{ fontSize: 16, color: "var(--text)", lineHeight: 1.7 }}>{med.use}</div>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <div className="card" style={{ padding: "20px" }}>
+            <div style={{ fontWeight: 600, color: "var(--info)", marginBottom: 10, fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}>
+              <Icon name="clock" size={15} /> Dosage
+            </div>
+            <div style={{ fontSize: 15, color: "var(--text)", lineHeight: 1.6 }}>{med.dosage}</div>
+          </div>
+          <div className="card" style={{ padding: "20px" }}>
+            <div style={{ fontWeight: 600, color: "var(--warn)", marginBottom: 10, fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}>
+              <Icon name="warn" size={15} /> Side Effects
+            </div>
+            <div style={{ fontSize: 15, color: "var(--text)", lineHeight: 1.6 }}>{med.sideEffects}</div>
+          </div>
+        </div>
+
+        <div className="card" style={{ padding: "20px" }}>
+          <div style={{ fontWeight: 600, color: "var(--warn)", marginBottom: 12, fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}>
+            <Icon name="warn" size={15} /> Warnings
+          </div>
+          {med.warnings.map((w, i) => (
+            <div key={i} style={{ display: "flex", gap: 10, marginBottom: 10, fontSize: 15, color: "var(--text)", lineHeight: 1.5 }}>
+              <span style={{ width: 24, height: 24, background: "var(--warn-light)", color: "var(--warn)", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
+              {w}
+            </div>
+          ))}
+        </div>
+
+        <div className="card" style={{ padding: "20px" }}>
+          <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12, display: "flex", alignItems: "center", gap: 6, color: "var(--text)" }}>
+            🏷️ Tags
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+            {(med.tags || []).map(t => <Tag key={t} label={t} onRemove={() => removeTag(t)} />)}
+          </div>
+          <input placeholder="Add tag... (press Enter)" value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={addTag} style={{ fontSize: 13, padding: "7px 12px" }} />
+        </div>
+
+        <div className="card" style={{ padding: "20px" }}>
+          <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span>📝 Notes</span>
+            {editing ? (
+              <div style={{ display: "flex", gap: 8 }}>
+                <button className="btn btn-ghost" style={{ fontSize: 13, padding: "4px 10px" }} onClick={() => setEditing(false)}>Cancel</button>
+                <button className="btn btn-primary" style={{ fontSize: 13, padding: "4px 10px" }} onClick={save}><Icon name="check" size={13} /> Save</button>
+              </div>
+            ) : (
+              <button className="btn btn-ghost" style={{ fontSize: 13, padding: "4px 10px" }} onClick={() => setEditing(true)}><Icon name="edit" size={13} /> Edit</button>
+            )}
+          </div>
+          {editing ? (
+            <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={4} placeholder="Add your personal notes here..." style={{ resize: "vertical" }} />
+          ) : (
+            <div style={{ fontSize: 15, color: notes ? "var(--text)" : "var(--text3)", lineHeight: 1.7, minHeight: 60, cursor: "pointer", padding: "8px 0" }} onClick={() => setEditing(true)}>
+              {notes || "Click to add notes..."}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── Medicines List ───────────────────────────────────────────────────────────
+const MedicinesList = ({ medicines, setMedicines, selectedMed, setSelectedMed }) => {
+  const [search, setSearch] = useState("");
+  const [filterTag, setFilterTag] = useState("");
+  const allTags = [...new Set(medicines.flatMap(m => m.tags || []))];
+  const filtered = medicines.filter(m =>
+    m.name.toLowerCase().includes(search.toLowerCase()) &&
+    (filterTag ? m.tags?.includes(filterTag) : true)
+  );
+
+  const updateMed = (updated) => setMedicines(prev => prev.map(m => m.id === updated.id ? updated : m));
+  const deleteMed = (id) => { setMedicines(prev => prev.filter(m => m.id !== id)); setSelectedMed(null); };
+
+  if (selectedMed) return (
+    <MedicinePage med={selectedMed} onUpdate={m => { updateMed(m); setSelectedMed(m); }} onDelete={deleteMed} onBack={() => setSelectedMed(null)} />
+  );
+
+  return (
+    <div className="fade-in" style={{ padding: "32px 40px", maxWidth: 860, margin: "0 auto" }}>
+      <h1 style={{ fontSize: 28, fontWeight: 600, marginBottom: 6 }}>My Medicines</h1>
+      <p style={{ color: "var(--text2)", marginBottom: 24, fontSize: 16 }}>{medicines.length} medicine{medicines.length !== 1 ? "s" : ""} saved</p>
+
+      <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+        <div style={{ flex: 1, minWidth: 200, position: "relative" }}>
+          <Icon name="search" size={16} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text3)" }} />
+          <input placeholder="Search medicines..." value={search} onChange={e => setSearch(e.target.value)} style={{ paddingLeft: 38 }} />
+        </div>
+        <select value={filterTag} onChange={e => setFilterTag(e.target.value)}>
+          <option value="">All Tags</option>
+          {allTags.map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="card" style={{ padding: 48, textAlign: "center" }}>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>💊</div>
+          <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 6 }}>No medicines found</div>
+          <div style={{ color: "var(--text2)" }}>Try a different search or scan a new medicine</div>
+        </div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 14 }}>
+          {filtered.map(m => (
+            <div key={m.id} className="card slide-in" style={{ padding: "20px", cursor: "pointer", transition: "transform 0.2s, box-shadow 0.2s" }}
+              onClick={() => setSelectedMed(m)}
+              onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "var(--shadow-md)"; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                <div style={{ width: 48, height: 48, background: (m.color || "#2f6b4f") + "22", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24 }}>{m.icon}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 16, color: "var(--text)" }}>{m.name}</div>
+                  <div style={{ fontSize: 13, color: "var(--text3)" }}>{m.category}</div>
+                </div>
+                {m.reminder?.enabled && <span style={{ background: "var(--accent-light)", color: "var(--accent)", fontSize: 11, padding: "3px 8px", borderRadius: 8, fontWeight: 600 }}>⏰</span>}
+              </div>
+              <div style={{ fontSize: 14, color: "var(--text2)", lineHeight: 1.5, marginBottom: 12, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                {m.use}
+              </div>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {(m.tags || []).map(t => <Tag key={t} label={t} />)}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── AI Assistant ─────────────────────────────────────────────────────────────
+const Assistant = () => {
+  const [messages, setMessages] = useState([
+    { role: "ai", text: "Namaskar! 🙏 I'm your MedNote assistant.\n\nAsk me anything about your medicines in simple words.\n\nআপনি বাংলায়ও জিজ্ঞাসা করতে পারেন! (You can ask in Bengali too!)", time: new Date() }
+  ]);
+  const [input, setInput] = useState("");
+  const [lang, setLang] = useState("en");
+  const [typing, setTyping] = useState(false);
+  const bottomRef = useRef();
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, typing]);
+
+  const send = () => {
+    if (!input.trim()) return;
+    const userMsg = { role: "user", text: input, time: new Date() };
+    setMessages(prev => [...prev, userMsg]);
+    const q = input;
+    setInput("");
+    setTyping(true);
+    setTimeout(() => {
+      const aiText = getAIResponse(q, lang);
+      setMessages(prev => [...prev, { role: "ai", text: aiText, time: new Date() }]);
+      setTyping(false);
+    }, 1200 + Math.random() * 800);
+  };
+
+  const quickQuestions = ["What is Metformin for?", "Can I take with food?", "What medicines do I have?", "Side effects?"];
+
+  return (
+    <div className="fade-in" style={{ display: "flex", flexDirection: "column", height: "100vh", padding: "24px 40px 0" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+        <div>
+          <h1 style={{ fontSize: 26, fontWeight: 600, marginBottom: 2 }}>AI Assistant</h1>
+          <p style={{ color: "var(--text2)", fontSize: 15 }}>Ask anything about your medicines</p>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className={`btn ${lang === "en" ? "btn-primary" : "btn-outline"}`} style={{ padding: "7px 14px", fontSize: 13 }} onClick={() => setLang("en")}>English</button>
+          <button className={`btn ${lang === "bn" ? "btn-primary" : "btn-outline"}`} style={{ padding: "7px 14px", fontSize: 13 }} onClick={() => setLang("bn")}>বাংলা</button>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
+        {quickQuestions.map(q => (
+          <button key={q} className="btn btn-outline" style={{ fontSize: 13, padding: "6px 14px" }} onClick={() => { setInput(q); }}>
+            {q}
+          </button>
+        ))}
+      </div>
+
+      <div style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: 14, paddingBottom: 16 }}>
+        {messages.map((m, i) => (
+          <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
+            {m.role === "ai" && (
+              <div style={{ width: 36, height: 36, background: "var(--accent)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", marginRight: 10, flexShrink: 0, fontSize: 16 }}>🤖</div>
+            )}
+            <div className={m.role === "user" ? "chat-bubble-user" : "chat-bubble-ai"} style={{ whiteSpace: "pre-line" }}>
+              {m.text}
+              <div style={{ fontSize: 11, marginTop: 6, opacity: 0.6 }}>
+                {m.time.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
+              </div>
+            </div>
+          </div>
+        ))}
+        {typing && (
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 36, height: 36, background: "var(--accent)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>🤖</div>
+            <div className="chat-bubble-ai" style={{ padding: "12px 18px" }}>
+              <div style={{ display: "flex", gap: 4 }}>
+                {[0, 1, 2].map(i => (
+                  <div key={i} style={{ width: 8, height: 8, background: "var(--accent)", borderRadius: "50%", animation: "pulse 1.4s infinite", animationDelay: `${i * 0.2}s` }} />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      <div style={{ padding: "16px 0 24px", borderTop: "1px solid var(--border)", display: "flex", gap: 12 }}>
+        <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === "Enter" && send()}
+          placeholder={lang === "bn" ? "ওষুধ সম্পর্কে প্রশ্ন করুন..." : "Ask about your medicines..."}
+          style={{ flex: 1, fontSize: 16, padding: "12px 16px" }} />
+        <button className="btn btn-primary" onClick={send} style={{ padding: "12px 20px" }}>
+          <Icon name="send" size={18} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ─── Reminders ───────────────────────────────────────────────────────────────
+const Reminders = ({ medicines, setMedicines }) => {
+  const [selected, setSelected] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [tempTimes, setTempTimes] = useState([]);
+
+  const openEdit = (med) => { setSelected(med); setTempTimes([...(med.reminder?.times || ["08:00"])]); setShowModal(true); };
+  const saveReminder = () => {
+    setMedicines(prev => prev.map(m => m.id === selected.id ? { ...m, reminder: { enabled: true, times: tempTimes } } : m));
+    setShowModal(false);
+  };
+  const toggleReminder = (id) => {
+    setMedicines(prev => prev.map(m => m.id === id ? { ...m, reminder: { ...m.reminder, enabled: !m.reminder?.enabled } } : m));
+  };
+
+  const now = new Date();
+  const upcomingTimes = medicines.filter(m => m.reminder?.enabled).flatMap(m =>
+    (m.reminder.times || []).map(t => ({ med: m, time: t }))
+  ).sort((a, b) => a.time.localeCompare(b.time));
+
+  return (
+    <div className="fade-in" style={{ padding: "32px 40px", maxWidth: 720, margin: "0 auto" }}>
+      <h1 style={{ fontSize: 28, fontWeight: 600, marginBottom: 6 }}>Medicine Reminders</h1>
+      <p style={{ color: "var(--text2)", marginBottom: 28, fontSize: 16 }}>Never miss a dose. Set up alerts for your medicines.</p>
+
+      {upcomingTimes.length > 0 && (
+        <div style={{ marginBottom: 28 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 14, color: "var(--text)" }}>📅 Today's Schedule</h2>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {upcomingTimes.map(({ med, time }, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, background: "var(--accent-light)", border: "1.5px solid var(--accent)", borderRadius: 12, padding: "14px 18px" }}>
+                <div style={{ fontSize: 22 }}>{med.icon}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, color: "var(--text)" }}>{med.name}</div>
+                  <div style={{ fontSize: 13, color: "var(--text2)" }}>{med.dosage.split(".")[0]}</div>
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: "var(--accent)", fontFamily: "Lora" }}>{time}</div>
+                  <div style={{ fontSize: 11, color: "var(--text3)" }}>Today</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 14, color: "var(--text)" }}>💊 Manage Reminders</h2>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {medicines.map(m => (
+          <div key={m.id} className="reminder-card">
+            <div style={{ fontSize: 24 }}>{m.icon}</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 600, fontSize: 16, marginBottom: 3 }}>{m.name}</div>
+              {m.reminder?.enabled && m.reminder.times?.length > 0 ? (
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {m.reminder.times.map(t => (
+                    <span key={t} style={{ background: "var(--accent-light)", color: "var(--accent)", fontSize: 13, padding: "2px 10px", borderRadius: 8, fontWeight: 500 }}>⏰ {t}</span>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ fontSize: 13, color: "var(--text3)" }}>No reminder set</div>
+              )}
+            </div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <button className="btn btn-outline" style={{ fontSize: 13, padding: "7px 14px" }} onClick={() => openEdit(m)}>
+                <Icon name="clock" size={14} /> Set Time
+              </button>
+              <div onClick={() => toggleReminder(m.id)} style={{
+                width: 44, height: 24, borderRadius: 12, background: m.reminder?.enabled ? "var(--accent)" : "var(--border)",
+                cursor: "pointer", position: "relative", transition: "background 0.2s"
+              }}>
+                <div style={{
+                  width: 20, height: 20, borderRadius: "50%", background: "white",
+                  position: "absolute", top: 2, left: m.reminder?.enabled ? 22 : 2, transition: "left 0.2s",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.3)"
+                }} />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {showModal && selected && (
+        <div className="modal-bg" onClick={() => setShowModal(false)}>
+          <div className="modal fade-in" onClick={e => e.stopPropagation()}>
+            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 6 }}>Set Reminder Times</h2>
+            <div style={{ fontSize: 15, color: "var(--text2)", marginBottom: 20 }}>{selected.name}</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+              {tempTimes.map((t, i) => (
+                <div key={i} style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                  <input type="time" value={t} onChange={e => { const tt = [...tempTimes]; tt[i] = e.target.value; setTempTimes(tt); }} style={{ flex: 1 }} />
+                  <button className="btn btn-ghost" style={{ padding: "8px 10px", color: "#c9732a" }} onClick={() => setTempTimes(prev => prev.filter((_, j) => j !== i))}>
+                    <Icon name="x" size={16} />
+                  </button>
+                </div>
+              ))}
+              <button className="btn btn-outline" onClick={() => setTempTimes(prev => [...prev, "08:00"])} style={{ justifyContent: "center" }}>
+                <Icon name="plus" size={16} /> Add Time
+              </button>
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button className="btn btn-primary" style={{ flex: 1, justifyContent: "center" }} onClick={saveReminder}>Save Reminders</button>
+              <button className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── Prescription Upload ──────────────────────────────────────────────────────
+const PrescriptionUpload = ({ setMedicines, setPage }) => {
+  const [stage, setStage] = useState("idle"); // idle, scanning, result
+  const [progress, setProgress] = useState(0);
+  const [extracted, setExtracted] = useState([]);
+  const [selected, setSelected] = useState([]);
+  const fileRef = useRef();
+
+  const simulateExtract = () => {
+    setStage("scanning");
+    setProgress(0);
+    const steps = [10, 25, 45, 65, 80, 100];
+    steps.forEach((v, i) => setTimeout(() => {
+      setProgress(v);
+      if (v === 100) {
+        const meds = [MEDICINE_DB["metformin"], MEDICINE_DB["amlodipine"], MEDICINE_DB["omeprazole"]];
+        setExtracted(meds);
+        setSelected(meds.map((_, i) => i));
+        setStage("result");
+      }
+    }, i * 600));
+  };
+
+  const addSelected = () => {
+    const toAdd = extracted.filter((_, i) => selected.includes(i)).map(m => ({
+      id: Date.now() + Math.random(),
+      ...m, notes: "Added from prescription.", reminder: { enabled: false, times: ["08:00"] },
+      addedDate: new Date().toISOString().split("T")[0]
+    }));
+    setMedicines(prev => {
+      const existNames = prev.map(x => x.name);
+      return [...prev, ...toAdd.filter(m => !existNames.includes(m.name))];
+    });
+    setPage("medicines");
+  };
+
+  return (
+    <div className="fade-in" style={{ padding: "32px 40px", maxWidth: 680, margin: "0 auto" }}>
+      <h1 style={{ fontSize: 28, fontWeight: 600, marginBottom: 6 }}>Upload Prescription</h1>
+      <p style={{ color: "var(--text2)", marginBottom: 28, fontSize: 16 }}>Scan your doctor's prescription to automatically add medicines.</p>
+
+      {stage === "idle" && (
+        <>
+          <div className="upload-zone" onClick={() => fileRef.current.click()}>
+            <div style={{ fontSize: 52, marginBottom: 16 }}>📋</div>
+            <div style={{ fontSize: 20, fontWeight: 600, marginBottom: 8 }}>Upload Prescription</div>
+            <div style={{ color: "var(--text2)", marginBottom: 20 }}>A photo or scanned image of your doctor's prescription</div>
+            <button className="btn btn-primary" style={{ fontSize: 16, padding: "12px 28px" }}>
+              <Icon name="upload" size={18} /> Choose File
+            </button>
+            <input ref={fileRef} type="file" accept="image/*,.pdf" style={{ display: "none" }} onChange={simulateExtract} />
+          </div>
+          <div style={{ marginTop: 20, textAlign: "center" }}>
+            <button className="btn btn-ghost" style={{ color: "var(--accent)" }} onClick={simulateExtract}>
+              Use demo prescription →
+            </button>
+          </div>
+        </>
+      )}
+
+      {stage === "scanning" && (
+        <div className="card fade-in" style={{ padding: "48px 32px", textAlign: "center" }}>
+          <div style={{ fontSize: 40, marginBottom: 16 }}>🔍</div>
+          <div style={{ fontWeight: 600, fontSize: 20, marginBottom: 8 }}>Reading Prescription...</div>
+          <div style={{ color: "var(--text2)", marginBottom: 24 }}>
+            {progress < 40 ? "Uploading image..." : progress < 70 ? "Running OCR to extract text..." : "Identifying medicines..."}
+          </div>
+          <div className="progress-bar" style={{ maxWidth: 320, margin: "0 auto" }}>
+            <div className="progress-fill" style={{ width: `${progress}%` }} />
+          </div>
+        </div>
+      )}
+
+      {stage === "result" && (
+        <div className="fade-in">
+          <div style={{ background: "var(--accent-light)", border: "1.5px solid var(--accent)", borderRadius: 12, padding: "14px 18px", marginBottom: 20, display: "flex", alignItems: "center", gap: 10 }}>
+            <Icon name="check" size={18} style={{ color: "var(--accent)" }} />
+            <span style={{ fontWeight: 600, color: "var(--accent)" }}>Found {extracted.length} medicines in your prescription</span>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+            {extracted.map((m, i) => (
+              <div key={i} className="card" style={{ padding: "16px 20px", display: "flex", alignItems: "center", gap: 14, cursor: "pointer", border: selected.includes(i) ? "2px solid var(--accent)" : "1px solid var(--border)" }}
+                onClick={() => setSelected(prev => prev.includes(i) ? prev.filter(x => x !== i) : [...prev, i])}>
+                <div style={{ width: 40, height: 40, background: (m.color || "#2f6b4f") + "22", borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>{m.icon}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 15 }}>{m.name}</div>
+                  <div style={{ fontSize: 13, color: "var(--text2)" }}>{m.use.slice(0, 55)}...</div>
+                </div>
+                <div style={{ width: 24, height: 24, borderRadius: 6, border: `2px solid ${selected.includes(i) ? "var(--accent)" : "var(--border)"}`, background: selected.includes(i) ? "var(--accent)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {selected.includes(i) && <Icon name="check" size={14} style={{ color: "white" }} />}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: "flex", gap: 12 }}>
+            <button className="btn btn-primary" style={{ flex: 1, justifyContent: "center", fontSize: 16, padding: "14px" }} onClick={addSelected}>
+              <Icon name="plus" size={18} /> Add {selected.length} Medicine{selected.length !== 1 ? "s" : ""}
+            </button>
+            <button className="btn btn-outline" onClick={() => setStage("idle")}>Try Again</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── Family Access ────────────────────────────────────────────────────────────
+const FamilyAccess = ({ medicines }) => {
+  const [members, setMembers] = useState([
+    { id: 1, name: "Priya Das", relation: "Daughter", phone: "+91 98765 43210", access: "view", avatar: "P", color: "#7a4fb5" },
+    { id: 2, name: "Suresh Das", relation: "Son", phone: "+91 87654 32109", access: "view", avatar: "S", color: "#2a6b9b" },
+  ]);
+  const [showModal, setShowModal] = useState(false);
+  const [newMember, setNewMember] = useState({ name: "", relation: "", phone: "" });
+
+  const addMember = () => {
+    if (!newMember.name) return;
+    const colors = ["#7a4fb5", "#2a6b9b", "#2f6b4f", "#b85c2a"];
+    setMembers(prev => [...prev, { id: Date.now(), ...newMember, access: "view", avatar: newMember.name[0]?.toUpperCase(), color: colors[prev.length % colors.length] }]);
+    setNewMember({ name: "", relation: "", phone: "" });
+    setShowModal(false);
+  };
+
+  return (
+    <div className="fade-in" style={{ padding: "32px 40px", maxWidth: 720, margin: "0 auto" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+        <h1 style={{ fontSize: 28, fontWeight: 600 }}>Family Access</h1>
+        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+          <Icon name="plus" size={16} /> Add Member
+        </button>
+      </div>
+      <p style={{ color: "var(--text2)", marginBottom: 28, fontSize: 16 }}>Allow family members to monitor your medicines.</p>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 28 }}>
+        {members.map(m => (
+          <div key={m.id} className="card" style={{ padding: "20px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <div style={{ width: 48, height: 48, background: m.color + "22", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 700, color: m.color }}>{m.avatar}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: 16 }}>{m.name}</div>
+                <div style={{ fontSize: 13, color: "var(--text2)" }}>{m.relation} · {m.phone}</div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ background: "var(--accent-light)", color: "var(--accent)", fontSize: 12, padding: "3px 10px", borderRadius: 8, fontWeight: 500 }}>
+                  <Icon name="shield" size={12} /> Can View
+                </span>
+                <button className="btn btn-ghost" style={{ padding: "6px 10px", color: "#c9732a", fontSize: 13 }} onClick={() => setMembers(prev => prev.filter(x => x.id !== m.id))}>Remove</button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="card" style={{ padding: "20px" }}>
+        <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>📱 Medicine Summary (Family View)</h2>
+        {medicines.slice(0, 3).map(m => (
+          <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: "1px solid var(--border)" }}>
+            <span style={{ fontSize: 20 }}>{m.icon}</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 500, fontSize: 14 }}>{m.name}</div>
+              <div style={{ fontSize: 12, color: "var(--text3)" }}>{m.dosage.slice(0, 45)}...</div>
+            </div>
+            {m.reminder?.enabled && <span style={{ fontSize: 12, color: "var(--accent)" }}>⏰ Active</span>}
+          </div>
+        ))}
+        <div style={{ marginTop: 12, fontSize: 13, color: "var(--text3)" }}>Showing {Math.min(3, medicines.length)} of {medicines.length} medicines</div>
+      </div>
+
+      {showModal && (
+        <div className="modal-bg" onClick={() => setShowModal(false)}>
+          <div className="modal fade-in" onClick={e => e.stopPropagation()}>
+            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 20 }}>Add Family Member</h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
+              <input placeholder="Full Name" value={newMember.name} onChange={e => setNewMember(p => ({ ...p, name: e.target.value }))} />
+              <input placeholder="Relation (e.g. Son, Daughter)" value={newMember.relation} onChange={e => setNewMember(p => ({ ...p, relation: e.target.value }))} />
+              <input placeholder="Phone Number" value={newMember.phone} onChange={e => setNewMember(p => ({ ...p, phone: e.target.value }))} />
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button className="btn btn-primary" style={{ flex: 1, justifyContent: "center" }} onClick={addMember}>Add Member</button>
+              <button className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── Main App ────────────────────────────────────────────────────────────────
+const App = () => {
+  const [dark, setDark] = useState(false);
+  const [page, setPage] = useState("home");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [medicines, setMedicines] = useState(INITIAL_MEDICINES);
+  const [selectedMed, setSelectedMed] = useState(null);
+
+  useEffect(() => {
+    document.documentElement.className = dark ? "dark" : "";
+  }, [dark]);
+
+  const renderPage = () => {
+    switch (page) {
+      case "home": return <Dashboard medicines={medicines} setPage={setPage} setSelectedMed={setSelectedMed} />;
+      case "scanner": return <Scanner medicines={medicines} setMedicines={setMedicines} setPage={setPage} setSelectedMed={setSelectedMed} />;
+      case "medicines": return <MedicinesList medicines={medicines} setMedicines={setMedicines} selectedMed={selectedMed} setSelectedMed={setSelectedMed} />;
+      case "assistant": return <Assistant />;
+      case "reminders": return <Reminders medicines={medicines} setMedicines={setMedicines} />;
+      case "prescription": return <PrescriptionUpload setMedicines={setMedicines} setPage={setPage} />;
+      case "family": return <FamilyAccess medicines={medicines} />;
+      default: return null;
+    }
+  };
+
+  return (
+    <div style={{ minHeight: "100vh" }}>
+      <Sidebar page={page} setPage={setPage} dark={dark} setDark={setDark} medicines={medicines} open={sidebarOpen} setOpen={setSidebarOpen} />
+
+      {/* Mobile overlay */}
+      {sidebarOpen && <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 30 }} onClick={() => setSidebarOpen(false)} />}
+
+      <div className="main">
+        {/* Mobile header */}
+        <div style={{ display: "none", alignItems: "center", padding: "14px 20px", borderBottom: "1px solid var(--border)", background: "var(--surface)", position: "sticky", top: 0, zIndex: 20 }}
+          className="mobile-header">
+          <button className="btn btn-ghost" style={{ padding: "6px 8px" }} onClick={() => setSidebarOpen(true)}>
+            <Icon name="menu" size={22} />
+          </button>
+          <div style={{ fontFamily: "Lora", fontWeight: 700, fontSize: 20, marginLeft: 8, color: "var(--accent)" }}>MedNote</div>
+        </div>
+
+        <style>{`@media (max-width: 768px) { .mobile-header { display: flex !important; } }`}</style>
+
+        <div style={{ minHeight: "100vh" }}>
+          {renderPage()}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
