@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Pill, Bell, Camera, MessageSquare, UploadCloud, 
-  ChevronRight, CheckCircle2, Search, X, Loader2
+  ChevronRight, CheckCircle2, Search, X, Loader2, Cpu, Zap
 } from 'lucide-react';
+import Fake3DPillVisual from './components/Fake3DPillVisual';
 
 // --- Shared Framer Motion Variants ---
 const staggerContainer = {
@@ -62,40 +63,58 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState(null);
+  const [uploadedImage, setUploadedImage] = useState(null);
+  const fileInputRef = useRef(null);
 
   const showToast = (msg) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setUploadedImage(url);
+    setScanResult(null);
+    simulateScan();
+  };
+
   const simulateScan = () => {
     setIsScanning(true);
     setScanResult(null);
-    // Simulate AI processing time
+    // Simulate 2-second heavy AI processing (matches backend time.sleep(2))
     setTimeout(() => {
       setIsScanning(false);
+      // Hardcoded SpatialMetadata matching /analyze-prescription response
       setScanResult({
-        name: "Paracetamol 650mg",
-        category: "Pain Relief",
-        use: "Used to treat mild to moderate pain and reduce fever.",
-        dosage: "Take 1 tablet every 6 hours after food.",
-        warnings: ["Do not exceed 4 tablets in 24 hours.", "Avoid alcohol while taking this medicine."]
+        mesh_primitive: 'capsule',
+        chroma_specs: { hex_code: '#34d399', glow_intensity: 0.85 },
+        spatial_scale: [2.5, 0.8, 0.8],
+        ocr_artifacts: {
+          medication_name: 'Metformin HCL',
+          dosage: '500mg',
+          frequency: 'Take 1 tablet twice daily with meals',
+          imprint_text: '194',
+        },
       });
-    }, 4000);
+    }, 2000);
   };
 
   const addMedicine = () => {
+    const name = scanResult?.ocr_artifacts?.medication_name ?? scanResult?.name ?? 'Medicine';
     setMedicines(prev => [...prev, {
       id: Date.now(),
-      name: scanResult.name,
-      category: scanResult.category,
+      name: `${name} ${scanResult?.ocr_artifacts?.dosage ?? ''}`.trim(),
+      category: scanResult?.ocr_artifacts?.imprint_text ? 'Scanned Prescription' : (scanResult?.category ?? 'General'),
       time: "As needed",
       icon: Pill,
       color: "text-purple-500",
       bg: "bg-purple-50"
     }]);
     setScanResult(null);
-    showToast(`Added ${scanResult.name} successfully`);
+    setUploadedImage(null);
+    showToast(`Added ${name} to library`);
   };
 
   return (
@@ -155,79 +174,170 @@ export default function App() {
               </p>
               
               <AnimatePresence mode="wait">
-                {!isScanning && !scanResult && (
-                  <motion.button
+                {/* ── IDLE: Upload button ── */}
+                {!isScanning && !scanResult && !uploadedImage && (
+                  <motion.div
+                    key="idle"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    onClick={simulateScan}
-                    whileHover={hoverScale}
-                    whileTap={tapScale}
-                    className="flex items-center justify-center gap-2 bg-slate-900 text-white px-6 py-4 rounded-xl font-medium w-full md:w-auto shadow-lg shadow-slate-900/20"
+                    className="flex flex-col sm:flex-row gap-3"
                   >
-                    <Camera className="w-5 h-5" /> Start Scanning
-                  </motion.button>
+                    <motion.button
+                      whileHover={hoverScale}
+                      whileTap={tapScale}
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex items-center justify-center gap-2 bg-slate-900 text-white px-6 py-4 rounded-xl font-medium shadow-lg shadow-slate-900/20"
+                    >
+                      <UploadCloud className="w-5 h-5" /> Upload Prescription
+                    </motion.button>
+                    <motion.button
+                      whileHover={hoverScale}
+                      whileTap={tapScale}
+                      onClick={simulateScan}
+                      className="flex items-center justify-center gap-2 border border-slate-200 text-slate-700 px-6 py-4 rounded-xl font-medium hover:bg-slate-50"
+                    >
+                      <Camera className="w-5 h-5" /> Use Camera
+                    </motion.button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleFileChange}
+                    />
+                  </motion.div>
                 )}
 
+                {/* ── SCANNING: Beam animation over preview image ── */}
                 {isScanning && (
                   <motion.div
                     key="scanning"
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="bg-white/80 backdrop-blur border border-slate-200 rounded-xl p-5"
+                    className="rounded-xl overflow-hidden border border-emerald-200 relative"
                   >
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="relative flex items-center justify-center">
-                        <Loader2 className="w-6 h-6 text-emerald-500 animate-spin" />
-                        <motion.div 
-                          animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }} 
-                          transition={{ repeat: Infinity, duration: 2 }}
-                          className="absolute inset-0 bg-emerald-400 rounded-full"
-                        />
-                      </div>
-                      <span className="text-slate-900 font-medium">Gemini AI is analyzing...</span>
+                    {/* Image preview or placeholder */}
+                    <div className="relative w-full h-48 bg-slate-100 flex items-center justify-center overflow-hidden">
+                      {uploadedImage ? (
+                        <img src={uploadedImage} alt="Prescription" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="flex flex-col items-center gap-2 text-slate-400">
+                          <Camera className="w-10 h-10" />
+                          <span className="text-sm">Analyzing prescription...</span>
+                        </div>
+                      )}
+
+                      {/* Scanning beam */}
+                      <motion.div
+                        className="absolute inset-x-0 h-1"
+                        style={{
+                          background: 'linear-gradient(90deg, transparent 0%, #34d399 40%, #10b981 60%, transparent 100%)',
+                          boxShadow: '0 0 18px 6px #34d39966',
+                        }}
+                        initial={{ top: '0%' }}
+                        animate={{ top: ['0%', '100%', '0%'] }}
+                        transition={{ repeat: Infinity, duration: 1.6, ease: 'easeInOut' }}
+                      />
+
+                      {/* Scan grid overlay */}
+                      <div
+                        className="absolute inset-0 pointer-events-none"
+                        style={{
+                          backgroundImage:
+                            'repeating-linear-gradient(0deg, transparent, transparent 23px, rgba(52,211,153,0.08) 24px), repeating-linear-gradient(90deg, transparent, transparent 23px, rgba(52,211,153,0.08) 24px)',
+                        }}
+                      />
                     </div>
-                    {/* Pulsing Skeleton */}
-                    <div className="space-y-3">
-                      <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 1.5 }} className="h-4 bg-slate-200 rounded-full w-3/4" />
-                      <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 1.5, delay: 0.2 }} className="h-4 bg-slate-200 rounded-full w-1/2" />
-                      <motion.div animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 1.5, delay: 0.4 }} className="h-4 bg-slate-200 rounded-full w-5/6" />
+
+                    {/* Status bar */}
+                    <div className="bg-slate-900 text-white px-5 py-3 flex items-center gap-3">
+                      <Loader2 className="w-4 h-4 text-emerald-400 animate-spin flex-shrink-0" />
+                      <span className="text-sm font-medium">Spatial Scan in Progress…</span>
+                      <motion.div
+                        animate={{ opacity: [0.4, 1, 0.4] }}
+                        transition={{ repeat: Infinity, duration: 1.2 }}
+                        className="ml-auto flex gap-1"
+                      >
+                        {[0, 1, 2].map(i => (
+                          <span key={i} className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+                        ))}
+                      </motion.div>
                     </div>
                   </motion.div>
                 )}
 
+                {/* ── RESULT: Spatial Diagnostics Panel ── */}
                 {scanResult && !isScanning && (
                   <motion.div
                     key="result"
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white border border-emerald-100 rounded-xl p-5 shadow-sm"
+                    transition={{ type: 'spring', stiffness: 280, damping: 22 }}
+                    className="rounded-2xl overflow-hidden border border-slate-700 shadow-2xl"
                   >
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h3 className="text-lg font-bold text-slate-900">{scanResult.name}</h3>
-                        <p className="text-sm font-medium text-emerald-600">{scanResult.category}</p>
+                    {/* Dark header */}
+                    <div className="bg-slate-900 px-5 pt-5 pb-0 flex justify-between items-center">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
+                          <Cpu className="w-4 h-4 text-emerald-400" />
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-400 uppercase tracking-widest font-medium">Spatial Diagnostics</p>
+                          <p className="text-white font-bold text-base leading-tight">{scanResult.ocr_artifacts.medication_name}</p>
+                        </div>
                       </div>
-                      <button onClick={() => setScanResult(null)} className="p-2 hover:bg-slate-100 rounded-full text-slate-400">
+                      <button
+                        onClick={() => { setScanResult(null); setUploadedImage(null); }}
+                        className="p-1.5 hover:bg-slate-800 rounded-full text-slate-500 transition-colors"
+                      >
                         <X className="w-4 h-4" />
                       </button>
                     </div>
-                    <p className="text-slate-600 text-sm mb-4 leading-relaxed">{scanResult.use}</p>
-                    <div className="mb-4 bg-amber-50 rounded-lg p-3 border border-amber-100">
-                      <p className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-2">Important Warnings</p>
-                      <ul className="text-sm text-amber-900 space-y-1">
-                        {scanResult.warnings.map((w, i) => <li key={i} className="flex gap-2"><span>•</span> {w}</li>)}
-                      </ul>
+
+                    {/* 3D Visual on dark bg */}
+                    <div className="bg-slate-900 px-6">
+                      <Fake3DPillVisual metadata={scanResult} />
                     </div>
-                    <motion.button
-                      whileHover={hoverScale}
-                      whileTap={tapScale}
-                      onClick={addMedicine}
-                      className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-3 rounded-lg flex items-center justify-center gap-2 transition-colors"
-                    >
-                      <CheckCircle2 className="w-4 h-4" /> Save to Library
-                    </motion.button>
+
+                    {/* Info Strip */}
+                    <div className="bg-slate-900 border-t border-slate-800 px-5 py-4 grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Dosage</p>
+                        <p className="text-emerald-400 font-bold text-lg">{scanResult.ocr_artifacts.dosage}</p>
+                      </div>
+                      <div>
+                        <p className="text-slate-500 text-xs uppercase tracking-wider mb-1">Frequency</p>
+                        <p className="text-slate-200 text-sm leading-snug">{scanResult.ocr_artifacts.frequency}</p>
+                      </div>
+                    </div>
+
+                    {/* Action row + AI Reliability badge */}
+                    <div className="bg-slate-900 border-t border-slate-800 px-5 py-4 flex items-center justify-between gap-3">
+                      <motion.button
+                        whileHover={hoverScale}
+                        whileTap={tapScale}
+                        onClick={addMedicine}
+                        className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-emerald-500/25"
+                      >
+                        <CheckCircle2 className="w-4 h-4" /> Save to Library
+                      </motion.button>
+
+                      {/* AI Reliability Score badge */}
+                      <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: 0.4, type: 'spring' }}
+                        className="flex flex-col items-center justify-center bg-slate-800 border border-emerald-500/30 rounded-xl px-4 py-2 gap-0.5"
+                      >
+                        <div className="flex items-center gap-1">
+                          <Zap className="w-3 h-3 text-emerald-400" />
+                          <span className="text-emerald-400 font-bold text-sm">98.4%</span>
+                        </div>
+                        <span className="text-slate-500 text-[10px] uppercase tracking-wider whitespace-nowrap">AI Reliability</span>
+                      </motion.div>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
